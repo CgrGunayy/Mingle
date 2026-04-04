@@ -1,0 +1,241 @@
+﻿<Window x:Class="MingleWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MingleWPF"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        mc:Ignorable="d"
+        FontFamily="./Fonts/#Manrope"
+        Height="720" Width="1024" 
+        WindowStyle="None"
+        AllowsTransparency="True" 
+        Background="Transparent">
+
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="Black"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+
+                        <Border x:Name="ButonCercevesi" 
+                            Background="{TemplateBinding Background}" 
+                            BorderThickness="{TemplateBinding BorderThickness}" 
+                            CornerRadius="4">
+
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButonCercevesi" Property="Background" Value="#333333"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButonCercevesi" Property="Background" Value="#555555"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButonCercevesi" Property="Background" Value="#1A1A1A"/>
+                                <Setter Property="Foreground" Value="#666666"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TabButton" TargetType="Button">
+            <Setter Property="Background" Value="Black"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+
+                        <Border x:Name="ButonCercevesi" 
+                    Background="{TemplateBinding Background}" 
+                    BorderThickness="{TemplateBinding BorderThickness}" 
+                    CornerRadius="4">
+
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                  VerticalAlignment="Center"
+                                  Margin="{TemplateBinding Padding}"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButonCercevesi" Property="Background" Value="#19A4133C"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButonCercevesi" Property="Background" Value="#19A4133C"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButonCercevesi" Property="Background" Value="#1A1A1A"/>
+                                <Setter Property="Foreground" Value="#666666"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Background" Value="#131313"/>
+            <Setter Property="Foreground" Value="#FFBDBDBD"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+
+                        <Border x:Name="MenuArkaPlan" 
+                            Background="{TemplateBinding Background}" 
+                            BorderThickness="0">
+                            <Grid>
+                                <ContentPresenter ContentSource="Header" 
+                                              HorizontalAlignment="Left" 
+                                              VerticalAlignment="Center" 
+                                              Margin="{TemplateBinding Padding}"/>
+
+                                <Popup x:Name="Popup" 
+                                   Placement="Bottom" 
+                                   Width="125"
+                                   IsOpen="{TemplateBinding IsSubmenuOpen}" 
+                                   AllowsTransparency="True" 
+                                   Focusable="False">
+                                    <Border Background="#131313" BorderThickness="0">
+                                        <StackPanel IsItemsHost="True" />
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="MenuArkaPlan" Property="Background" Value="#333333"/>
+                            </Trigger>
+
+                            <Trigger Property="IsSubmenuOpen" Value="True">
+                                <Setter TargetName="MenuArkaPlan" Property="Background" Value="#555555"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#666666"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Background="#131313" MouseDown="TopBar_MouseDown">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="150"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="MINGLE" Foreground="#A4133C" FontSize="24" Padding="25, 0, 0, 0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" FontWeight="ExtraBold" />
+            <Menu Grid.Column="1" Background="#131313" VerticalAlignment="Center">
+                <MenuItem Header="FILE" FontSize="14" FontWeight="Bold">
+                    <MenuItem Header="NEW"/>
+                    <MenuItem Header="OPEN"/>
+                    <MenuItem Header="SAVE"/>
+                </MenuItem>
+            </Menu>
+            <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Click="MinimizeButton_Click" Background="#131313" BorderThickness="0" Margin="5, 0, 5, 0">
+                    <iconPacks:PackIconBootstrapIcons Kind="DashSquare" Width="24" Height="24" Foreground="#A4133C"/>
+                </Button>
+                <Button Click="MaximizeButton_Click" Background="#131313" BorderThickness="0" Margin="5, 0, 5, 0">
+                    <iconPacks:PackIconBootstrapIcons Kind="Square" Width="24" Height="24" Foreground="#A4133C"/>
+                </Button>
+                <Button Click="CloseButton_Click" Background="#131313" BorderThickness="0" Margin="5, 0, 5, 0">
+                    <iconPacks:PackIconBootstrapIcons Kind="XSquare" Width="24" Height="24" Foreground="#A4133C"/>
+                </Button>
+
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" Background="#20201F">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.3*"/>
+                <ColumnDefinition Width="0.7*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0" Background="#20201F">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.2*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="0.3*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="0.6*"/>
+                        <RowDefinition Height="0.4*"/>
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Row="0" Margin="20, 0, 0, 30" Grid.RowSpan="2" Content="Project Name" VerticalContentAlignment="Bottom" FontWeight="Bold" FontSize="18" Foreground="#E5E2E1"/>
+                    <Label Grid.Row="1" Margin="21, 0, 0, 0" Content="1080p" VerticalContentAlignment="Top" FontWeight="Thin" FontSize="12" Foreground="#FFE0BEC1"/>
+                </Grid>
+                
+                <StackPanel Grid.Row="1">
+                    <Button Style="{StaticResource TabButton}" Height="50" Background="#20201F" MouseEnter="TabButton_MouseEnter" Margin="10, 0, 10, 0">
+                        <DockPanel Width="250">
+                            <iconPacks:PackIconBootstrapIcons Margin="20, 0, 0, 0" DockPanel.Dock="Left" Kind="FileImage" Foreground="#FFBDBDBD"  VerticalAlignment="Center"/>
+                            <Label Content="Media" Margin="7, 0, 0, 0" Foreground="#FFBDBDBD" FontSize="14" FontWeight="Medium"  VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+            
+            <Grid Grid.Column="1" Background="#20201F">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.65*"/>
+                    <RowDefinition Height="0.35*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0.3*"/>
+                        <ColumnDefinition Width="0.7*"/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="0.1*"/>
+                        <RowDefinition Height="0.7*"/>
+                    </Grid.RowDefinitions>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="2">
+
+        </Grid>
+    </Grid>
+</Window>
