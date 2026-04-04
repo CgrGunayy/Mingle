@@ -30,16 +30,16 @@ namespace MingleWPF
                 if (currentTab != value)
                 {
                     currentTab = value;
-                    OnPropertyChanged(); // Değer değiştiğinde arayüze haber ver!
+                    OnPropertyChanged();
                 }
             }
         }
 
         private MingleTab currentTab;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        protected void OnPropertyChanged([CallerMemberName] string? name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
@@ -47,6 +47,7 @@ namespace MingleWPF
         public MainWindow()
         {
             InitializeComponent();
+
             CurrentTab = MingleTab.Media;
             this.DataContext = this;
         }
