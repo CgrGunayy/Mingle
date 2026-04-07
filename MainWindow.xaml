@@ -75,11 +75,11 @@
 
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButonCercevesi" Property="Background" Value="#19A4133C"/>
+                                <Setter TargetName="ButonCercevesi" Property="Background" Value="#0CA4133C"/>
                             </Trigger>
 
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="ButonCercevesi" Property="Background" Value="#19A4133C"/>
+                                <Setter TargetName="ButonCercevesi" Property="Background" Value="#0CA4133C"/>
                             </Trigger>
 
                             <Trigger Property="IsEnabled" Value="False">
@@ -208,8 +208,8 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="130"/>
                 </Grid.RowDefinitions>
-            
-                <Grid Grid.Row="0"> 
+
+                <Grid Grid.Row="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="0.5*"/>
                         <RowDefinition Height="0.5*"/>
@@ -220,39 +220,64 @@
                 </Grid>
 
                 <StackPanel Grid.Row="1">
-                    <Button Height="50" Background="#20201F" Click="MediaButton_Click" Margin="10, 0, 10, 0" HorizontalContentAlignment="Left">
+                    <Button Height="50"  Click="MediaButton_Click" Margin="10, 0, 10, 0" HorizontalContentAlignment="Left">
 
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource TabButton}">
+                                <Setter Property="Background" Value="#20201F"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding CurrentTab}" Value="{x:Static local:MingleTab.Media}">
-                                        <Setter Property="Background" Value="#C62828"/>
+                                        <Setter Property="Background" Value="#19A4133C"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
-                        
+
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconBootstrapIcons Margin="20, 0, 0, 0" Kind="FileImage" Foreground="#FFBDBDBD"  VerticalAlignment="Center"/>
                             <Label Content="Media" Margin="5, 0, 0, 0" Foreground="#FFBDBDBD" FontSize="14" FontWeight="Medium"  VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource TabButton}" Height="50" Background="#20201F" Margin="10, 0, 10, 0" HorizontalContentAlignment="Left">
+                    <Button Height="50" Click="EffectButton_Click" Margin="10, 0, 10, 0" HorizontalContentAlignment="Left">
+
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource TabButton}">
+                                <Setter Property="Background" Value="#20201F"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentTab}" Value="{x:Static local:MingleTab.Effects}">
+                                        <Setter Property="Background" Value="#19A4133C"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconBootstrapIcons Margin="20, 0, 0, 0" Kind="LightningChargeFill" Foreground="#FFBDBDBD"  VerticalAlignment="Center"/>
                             <Label Content="Effects" Margin="5, 0, 0, 0" Foreground="#FFBDBDBD" FontSize="14" FontWeight="Medium"  VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource TabButton}" Height="50" Background="#20201F" Margin="10, 0, 10, 0" HorizontalContentAlignment="Left">
+                    <Button Height="50" Click="AudioButton_Click" Margin="10, 0, 10, 0" HorizontalContentAlignment="Left">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource TabButton}">
+                                <Setter Property="Background" Value="#20201F"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentTab}" Value="{x:Static local:MingleTab.Audio}">
+                                        <Setter Property="Background" Value="#19A4133C"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconBootstrapIcons Margin="20, 0, 0, 0" Kind="Soundwave" Foreground="#FFBDBDBD"  VerticalAlignment="Center"/>
                             <Label Content="Audio" Margin="5, 0, 0, 0" Foreground="#FFBDBDBD" FontSize="14" FontWeight="Medium"  VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+
                 </StackPanel>
 
                 <StackPanel Grid.Row="2">
-                    <Button Height="50" Background="#353535" Margin="10, 0, 10, 0" HorizontalContentAlignment="Center">
+                    <Button Click="ImportButton_Click" Height="50" Background="#353535" Margin="10, 0, 10, 0" HorizontalContentAlignment="Center">
                         <StackPanel Orientation="Horizontal">
                             <iconPacks:PackIconBootstrapIcons Width="10" Height="10" Kind="Plus" Foreground="#FFBDBDBD"  VerticalAlignment="Center"/>
                             <Label Content="Import" Foreground="#FFBDBDBD" FontWeight="Bold" FontSize="14"  VerticalAlignment="Center"/>
@@ -294,7 +319,7 @@
                                 <ColumnDefinition Width="48"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBox x:Name="searchBox" Grid.Column="0" Height="35" KeyDown="SearchBox_KeyDown" VerticalContentAlignment="Center" MaxLines="1" Margin="20, 0, 0, 0">
+                            <TextBox x:Name="searchBox" Grid.Column="0" Height="35" KeyDown="SearchBox_KeyDown" VerticalContentAlignment="Center" MaxLines="1" Margin="20, 0, 0, 0" TextChanged="SearchBox_TextChanged">
                                 <TextBox.Style>
                                     <Style TargetType="TextBox">
                                         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -338,9 +363,12 @@
                                 </TextBox.Style>
                             </TextBox>
                             <Button Grid.Column="1" Click="SearchButton_Click" Background="#20201F" Width="28" Height="28" HorizontalContentAlignment="Center">
-                                    <iconPacks:PackIconBootstrapIcons  Width="16" Height="16" Kind="Search" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FFB2BA"/>
+                                <iconPacks:PackIconBootstrapIcons  Width="16" Height="16" Kind="Search" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FFB2BA"/>
                             </Button>
                         </Grid>
+                        <WrapPanel x:Name="libraryPanel" Grid.Row="1" Margin="20, 5, 20, 5" Orientation="Horizontal" HorizontalAlignment="Stretch">
+
+                        </WrapPanel>
                     </Grid>
 
                     <Border Grid.Column="1" Background="#19594043" />
@@ -399,7 +427,7 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            
+
                             <Grid Grid.Row="0" Background="#0E0E0E">
                                 <local:TimelineControl x:Name="timeline" />
                             </Grid>

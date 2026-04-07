@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="MingleWPF.UC_File"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MingleWPF"
+             mc:Ignorable="d" 
+             d:DesignHeight="100" d:DesignWidth="150" Margin="5" Width="150" Height="100" >
+    <Grid Background="#131313">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Image x:Name="fileImageHolder" x:FieldModifier="private" Grid.Row="0"/>
+        <Border Grid.Row="0" VerticalAlignment="Bottom" Background="#99000000">
+            <Label x:Name="fileNameHolder" x:FieldModifier="private" Content="Video.mp4" Padding="8, 0, 8, 2" Height="30" Foreground="#FFBDBDBD" FontSize="12" HorizontalAlignment="Left" VerticalContentAlignment="Center"/>
+        </Border>
+    </Grid>
+</UserControl>
