@@ -4,16 +4,22 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Runtime.InteropServices;
+using FFMpegCore;
 
 namespace MingleWPF
 {
     public class TimelineControl : FrameworkElement
     {
+        public TimelineData TimelineData { get; private set; }
+
         private readonly SolidColorBrush _backgroundBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0E0E0E"));
         private readonly Pen _tickPen = new Pen(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#70594043")), 1);
         private readonly Pen _playheadPen = new Pen(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFB2BA")), 2);
         private readonly SolidColorBrush _playheadRectBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFB2BA"));
         private readonly SolidColorBrush _textBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#70E0BEC1"));
+
+        SolidColorBrush clipBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A4133C"));
+        Pen clipBorderPen = new Pen(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#35A4133C")), 1);
 
         public double PixelsPerSecond { get; set; } = 100;
         public double ScrollOffset { get; set; } = 0;
@@ -29,11 +35,12 @@ namespace MingleWPF
         private Point dragStartScreenPoint;
         private bool ignoreNextMouseMove;
 
-        private double debugDelta;
-
         public TimelineControl()
         {
             this.ClipToBounds = true;
+            this.AllowDrop = true;
+
+            TimelineData = new TimelineData();
         }
 
         protected override void OnRender(DrawingContext dc)
@@ -51,9 +58,9 @@ namespace MingleWPF
             if (PixelsPerSecond * 5 < minPixelGap) stepSeconds = 10;
             if (PixelsPerSecond * 10 < minPixelGap) stepSeconds = 30;
             if (PixelsPerSecond * 30 < minPixelGap) stepSeconds = 60;
-            if (PixelsPerSecond * 60 < minPixelGap) stepSeconds = 300;   
-            if (PixelsPerSecond * 300 < minPixelGap) stepSeconds = 600;    
-            if (PixelsPerSecond * 600 < minPixelGap) stepSeconds = 1800;  
+            if (PixelsPerSecond * 60 < minPixelGap) stepSeconds = 300;
+            if (PixelsPerSecond * 300 < minPixelGap) stepSeconds = 600;
+            if (PixelsPerSecond * 600 < minPixelGap) stepSeconds = 1800;
             if (PixelsPerSecond * 1800 < minPixelGap) stepSeconds = 3600;
             if (PixelsPerSecond * 3600 < minPixelGap) stepSeconds = 18000;
 
@@ -79,6 +86,26 @@ namespace MingleWPF
                 dc.DrawText(text, new Point(xPos + 4, 15));
             }
 
+            foreach (var clip in TimelineData.Clips)
+            {
+                double startX = (clip.ClipStartSecond * PixelsPerSecond) - ScrollOffset;
+                double width = clip.ClipDuration * PixelsPerSecond;
+
+                Rect clipRect = new Rect(startX, 30, width, 40);
+
+                if (clipRect.Right > 0 && clipRect.Left < ActualWidth)
+                {
+                    dc.DrawRectangle(clipBrush, clipBorderPen, clipRect);
+
+                    FormattedText clipText = new FormattedText(
+                        clip.ClipTitle,
+                        System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
+                        new Typeface("Consolas"), 10, Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+
+                    dc.DrawText(clipText, new Point(startX + 5, 42));
+                }
+            }
+
             double playheadX = (PlayheadSeconds * PixelsPerSecond) - ScrollOffset;
             if (playheadX >= 0 && playheadX <= ActualWidth)
             {
@@ -86,6 +113,50 @@ namespace MingleWPF
 
                 Rect playheadRect = new Rect(playheadX - 5, 0, 10, 10);
                 dc.DrawRectangle(_playheadRectBrush, null, playheadRect);
+            }
+        }
+
+        protected async override void OnDrop(DragEventArgs e)
+        {
+            base.OnDrop(e);
+
+            if (e.Data.GetDataPresent("MingleFile"))
+            {
+                FileData? file = e.Data.GetData("MingleFile") as FileData;
+                if (file == null)
+                    return;
+
+                Point dropPoint = e.GetPosition(this);
+                double dropSecond = (dropPoint.X + ScrollOffset) / PixelsPerSecond;
+
+                try
+                {
+                    TimelineClip clip = new TimelineClip();
+                    clip.ClipTitle = file.Name;
+                    clip.ClipStartSecond = dropSecond;
+                    clip.FileData = file;
+
+                    switch (file.Type)
+                    {
+                        case FileType.Video:
+                            IMediaAnalysis videoInfo = await FFProbe.AnalyseAsync(file.Path);
+                            clip.ClipEndSecond = clip.ClipStartSecond + videoInfo.Duration.TotalSeconds;
+                            break;
+                        case FileType.Image:
+                            clip.ClipEndSecond = clip.ClipStartSecond + 5.0;
+                            break;
+                    }
+
+                    clip.ClipDuration = clip.ClipEndSecond - clip.ClipStartSecond;
+
+                    TimelineData.AddClip(clip);
+
+                    InvalidateVisual();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Couldn't read file information.\nError: " + ex.Message);
+                }
             }
         }
 
@@ -126,7 +197,6 @@ namespace MingleWPF
                 if (PlayheadSeconds < 0)
                     PlayheadSeconds = 0;
 
-                debugDelta = playheadX;
                 if (Math.Abs(deltaX) > 0)
                 {
                     if (playheadX > ActualWidth || playheadX < 0)

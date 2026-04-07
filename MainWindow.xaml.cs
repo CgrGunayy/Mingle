@@ -252,12 +252,13 @@ namespace MingleWPF
                         return;
                 }
 
-                UC_File media = new UC_File();
-                media.FileName = selectedFileName;
-                media.FileThumbnail = thumbnail;
-                media.FileType = fileType;
+                UC_File file = new UC_File();
+                file.FileName = selectedFileName;
+                file.FileThumbnail = thumbnail;
+                file.FilePath = selectedFilePath;
+                file.FileType = fileType;
 
-                libraryPanel.Children.Add(media);
+                libraryPanel.Children.Add(file);
             }
         }
 
