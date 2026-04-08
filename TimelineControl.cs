@@ -51,19 +51,8 @@ namespace MingleWPF
             dc.DrawRectangle(_backgroundBrush, null, bounds);
 
             double minPixelGap = 60;
-            int stepSeconds = 1;
-
-            if (PixelsPerSecond * 1 < minPixelGap) stepSeconds = 2;
-            if (PixelsPerSecond * 2 < minPixelGap) stepSeconds = 5;
-            if (PixelsPerSecond * 5 < minPixelGap) stepSeconds = 10;
-            if (PixelsPerSecond * 10 < minPixelGap) stepSeconds = 30;
-            if (PixelsPerSecond * 30 < minPixelGap) stepSeconds = 60;
-            if (PixelsPerSecond * 60 < minPixelGap) stepSeconds = 300;
-            if (PixelsPerSecond * 300 < minPixelGap) stepSeconds = 600;
-            if (PixelsPerSecond * 600 < minPixelGap) stepSeconds = 1800;
-            if (PixelsPerSecond * 1800 < minPixelGap) stepSeconds = 3600;
-            if (PixelsPerSecond * 3600 < minPixelGap) stepSeconds = 18000;
-
+            int stepSeconds = CalculateStepSeconds(PixelsPerSecond, minPixelGap);
+  
             int startSec = (int)(ScrollOffset / PixelsPerSecond);
             int endSec = startSec + (int)(ActualWidth / PixelsPerSecond) + 2;
 
@@ -102,7 +91,15 @@ namespace MingleWPF
                         System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
                         new Typeface("Consolas"), 10, Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
-                    dc.DrawText(clipText, new Point(startX + 5, 42));
+                    double safeTextWidth = width - 10;
+
+                    if (safeTextWidth > 0)
+                    {
+                        clipText.MaxTextWidth = safeTextWidth;
+                        clipText.MaxLineCount = 1;
+                        clipText.Trimming = TextTrimming.CharacterEllipsis;
+                        dc.DrawText(clipText, new Point(startX + 5, 42));
+                    }
                 }
             }
 
@@ -114,6 +111,23 @@ namespace MingleWPF
                 Rect playheadRect = new Rect(playheadX - 5, 0, 10, 10);
                 dc.DrawRectangle(_playheadRectBrush, null, playheadRect);
             }
+        }
+
+        private int CalculateStepSeconds(double pixelsPerSecond, double minPixelGap)
+        {
+            int stepSeconds = 1;
+            if (pixelsPerSecond * 1 < minPixelGap) stepSeconds = 2;
+            if (pixelsPerSecond * 2 < minPixelGap) stepSeconds = 5;
+            if (pixelsPerSecond * 5 < minPixelGap) stepSeconds = 10;
+            if (pixelsPerSecond * 10 < minPixelGap) stepSeconds = 30;
+            if (pixelsPerSecond * 30 < minPixelGap) stepSeconds = 60;
+            if (pixelsPerSecond * 60 < minPixelGap) stepSeconds = 300;
+            if (pixelsPerSecond * 300 < minPixelGap) stepSeconds = 600;
+            if (pixelsPerSecond * 600 < minPixelGap) stepSeconds = 1800;
+            if (pixelsPerSecond * 1800 < minPixelGap) stepSeconds = 3600;
+            if (pixelsPerSecond * 3600 < minPixelGap) stepSeconds = 18000;
+
+            return stepSeconds;
         }
 
         protected async override void OnDrop(DragEventArgs e)
