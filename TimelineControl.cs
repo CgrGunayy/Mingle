@@ -37,7 +37,7 @@ namespace MingleWPF
         private ClipDragMode currentClipDragMode = ClipDragMode.None;
 
         private Point clipDragStartScreenPoint;
-        private TimelineClip? draggingClip;
+        private TimelineClip? pressedClip;
 
         private Point dragStartScreenPoint;
         private bool ignoreNextMouseMove;
@@ -288,25 +288,25 @@ namespace MingleWPF
 
                 if (mousePoint.Y > TimelineTopHeight)
                 {
-                    int droppedLayer = (int)((mousePoint.Y - TimelineTopHeight) / LayerHeight);
+                    int pressedLayer = (int)((mousePoint.Y - TimelineTopHeight) / LayerHeight);
 
-                    if (droppedLayer < MainWindow.LayersPanel.Children.Count)
+                    if (pressedLayer < MainWindow.LayersPanel.Children.Count)
                     {
-                        UC_LayerControl layerControl = (UC_LayerControl)(MainWindow.LayersPanel.Children[droppedLayer]);
+                        UC_LayerControl layerControl = (UC_LayerControl)(MainWindow.LayersPanel.Children[pressedLayer]);
                         TimelineLayer layer = TimelineData.Layers[layerControl.LayerID];
 
                         if (TimelineData.TryToGetClipAtSeconds(mousePointSeconds, out TimelineClip? clip, layer.LayerID))
                         {
                             isDraggingClip = true;
-                            draggingClip = clip;
+                            pressedClip = clip;
 
                             double hitTolerance = 10 / PixelsPerSecond;
 
-                            if (Math.Abs(mousePointSeconds - draggingClip.StartSecondsOnTimeline) <= hitTolerance)
+                            if (Math.Abs(mousePointSeconds - pressedClip.StartSecondsOnTimeline) <= hitTolerance)
                             {
                                 currentClipDragMode = ClipDragMode.TrimLeft;
                             }
-                            else if (Math.Abs(mousePointSeconds - draggingClip.EndSecondsOnTimeline) <= hitTolerance)
+                            else if (Math.Abs(mousePointSeconds - pressedClip.EndSecondsOnTimeline) <= hitTolerance)
                             {
                                 currentClipDragMode = ClipDragMode.TrimRight;
                             }
@@ -326,6 +326,26 @@ namespace MingleWPF
 
                 this.CaptureMouse();
                 this.Cursor = Cursors.None;
+            }
+            else if (e.RightButton == MouseButtonState.Pressed)
+            {
+                Point mousePoint = e.GetPosition(this);
+                double mousePointSeconds = (mousePoint.X + ScrollOffset) / PixelsPerSecond;
+
+                int pressedLayer = (int)((mousePoint.Y - TimelineTopHeight) / LayerHeight);
+
+                if (pressedLayer < MainWindow.LayersPanel.Children.Count)
+                {
+                    UC_LayerControl layerControl = (UC_LayerControl)(MainWindow.LayersPanel.Children[pressedLayer]);
+                    TimelineLayer layer = TimelineData.Layers[layerControl.LayerID];
+
+                    if (TimelineData.TryToGetClipAtSeconds(mousePointSeconds, out TimelineClip? clip, layer.LayerID))
+                    {
+                        pressedClip = clip;
+                        TimelineData.Layers[pressedClip.LayerID].Clips.Remove(pressedClip);
+                        TimelineData.Clips.Remove(pressedClip);
+                    }
+                }
             }
         }
 
@@ -365,7 +385,7 @@ namespace MingleWPF
                     InvalidateVisual();
                 }
             }
-            else if (isDraggingClip && draggingClip != null)
+            else if (isDraggingClip && pressedClip != null)
             {
                 if (ignoreNextMouseMove)
                 {
@@ -383,52 +403,52 @@ namespace MingleWPF
 
                     if (currentClipDragMode == ClipDragMode.TrimLeft)
                     {
-                        double newStart = draggingClip.StartSecondsOnTimeline + deltaSeconds;
+                        double newStart = pressedClip.StartSecondsOnTimeline + deltaSeconds;
 
                         if (newStart < 0) newStart = 0;
 
-                        if (newStart > draggingClip.EndSecondsOnTimeline - minDurationSeconds)
-                            newStart = draggingClip.EndSecondsOnTimeline - minDurationSeconds;
+                        if (newStart > pressedClip.EndSecondsOnTimeline - minDurationSeconds)
+                            newStart = pressedClip.EndSecondsOnTimeline - minDurationSeconds;
 
-                        if (draggingClip.FileData?.Type == FileType.Video)
+                        if (pressedClip.FileData?.Type == FileType.Video)
                         {
-                            draggingClip.VideoStartSecond += newStart - draggingClip.StartSecondsOnTimeline;
-                            if (draggingClip.VideoStartSecond < 0)
+                            pressedClip.VideoStartSecond += newStart - pressedClip.StartSecondsOnTimeline;
+                            if (pressedClip.VideoStartSecond < 0)
                             {
-                                double amount = -draggingClip.VideoStartSecond;
+                                double amount = -pressedClip.VideoStartSecond;
                                 newStart += amount;
-                                draggingClip.VideoStartSecond = 0;
+                                pressedClip.VideoStartSecond = 0;
                             }
                         }
 
-                        draggingClip.StartSecondsOnTimeline = newStart;
-                        draggingClip.ClipDuration = draggingClip.EndSecondsOnTimeline - draggingClip.StartSecondsOnTimeline;
+                        pressedClip.StartSecondsOnTimeline = newStart;
+                        pressedClip.ClipDuration = pressedClip.EndSecondsOnTimeline - pressedClip.StartSecondsOnTimeline;
                     }
                     else if (currentClipDragMode == ClipDragMode.TrimRight)
                     {
-                        double newEnd = draggingClip.EndSecondsOnTimeline + deltaSeconds;
+                        double newEnd = pressedClip.EndSecondsOnTimeline + deltaSeconds;
 
-                        if (newEnd < draggingClip.StartSecondsOnTimeline + minDurationSeconds)
-                            newEnd = draggingClip.StartSecondsOnTimeline + minDurationSeconds;
+                        if (newEnd < pressedClip.StartSecondsOnTimeline + minDurationSeconds)
+                            newEnd = pressedClip.StartSecondsOnTimeline + minDurationSeconds;
 
-                        if (draggingClip.FileData?.Type == FileType.Video)
+                        if (pressedClip.FileData?.Type == FileType.Video)
                         {
-                            if (newEnd > draggingClip.StartSecondsOnTimeline + draggingClip.VideoDuration)
-                                newEnd = draggingClip.StartSecondsOnTimeline + draggingClip.VideoDuration;
+                            if (newEnd > pressedClip.StartSecondsOnTimeline + pressedClip.VideoDuration)
+                                newEnd = pressedClip.StartSecondsOnTimeline + pressedClip.VideoDuration;
                         }
 
 
-                        draggingClip.EndSecondsOnTimeline = newEnd;
-                        draggingClip.ClipDuration = draggingClip.EndSecondsOnTimeline - draggingClip.StartSecondsOnTimeline;
+                        pressedClip.EndSecondsOnTimeline = newEnd;
+                        pressedClip.ClipDuration = pressedClip.EndSecondsOnTimeline - pressedClip.StartSecondsOnTimeline;
                     }
                     else if (currentClipDragMode == ClipDragMode.Move)
                     {
-                        double newStart = draggingClip.StartSecondsOnTimeline + deltaSeconds;
+                        double newStart = pressedClip.StartSecondsOnTimeline + deltaSeconds;
 
                         if (newStart < 0) newStart = 0;
 
-                        draggingClip.StartSecondsOnTimeline = newStart;
-                        draggingClip.EndSecondsOnTimeline = newStart + draggingClip.ClipDuration;
+                        pressedClip.StartSecondsOnTimeline = newStart;
+                        pressedClip.EndSecondsOnTimeline = newStart + pressedClip.ClipDuration;
                     }
 
                     ignoreNextMouseMove = true;
@@ -468,7 +488,7 @@ namespace MingleWPF
             isDragging = false;
             isDraggingPlayhead = false;
             isDraggingClip = false;
-            draggingClip = null;
+            pressedClip = null;
             this.ReleaseMouseCapture();
             this.Cursor = Cursors.Arrow;
         }
