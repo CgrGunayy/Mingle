@@ -1,0 +1,56 @@
+﻿<Window x:Class="MingleWPF.SignUpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="Mingle" Height="500" Width="350"
+        WindowStartupLocation="CenterScreen" 
+        WindowStyle="None" 
+        ResizeMode="NoResize"
+        Background="#121212">
+
+    <Window.InputBindings>
+        <MouseBinding MouseAction="LeftClick" Command="{Binding DragMoveCommand}" />
+    </Window.InputBindings>
+
+    <Grid Margin="20, 15, 20, 15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Background="#131313" MouseDown="TopBar_MouseDown">
+            <Label Content="MINGLE" Foreground="#A4133C" Margin="0, 0, 0, 6" FontSize="28" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="ExtraBold" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="0" VerticalAlignment="Center" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Click="CloseButton_Click" Background="#131313" BorderThickness="0" Margin="5, 0, 5, 0">
+                <iconPacks:PackIconBootstrapIcons Kind="XSquare" Width="24" Height="24" Foreground="#A4133C"/>
+            </Button>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" VerticalAlignment="Center">
+
+            <TextBlock Text="USERNAME*" Foreground="#777777" FontSize="10" FontWeight="SemiBold" Margin="0, 0, 0, 5"/>
+            <TextBox x:Name="UsernameTextBox" Height="40" Background="#1A1A1A" Foreground="White" BorderBrush="#333333" BorderThickness="1" Padding="10,0" VerticalContentAlignment="Center" Margin="0, 0, 0, 20">
+            </TextBox>
+
+            <TextBlock Text="EMAIL*" Foreground="#777777" FontSize="10" FontWeight="SemiBold" Margin="0, 0, 0, 5"/>
+            <TextBox x:Name="EmailTextBox" Height="40" Background="#1A1A1A" Foreground="White" BorderBrush="#333333" BorderThickness="1" Padding="10,0" VerticalContentAlignment="Center" Margin="0, 0, 0, 20">
+            </TextBox>
+
+            <TextBlock Text="PASSWORD*" Foreground="#777777" FontSize="10" FontWeight="SemiBold" Margin="0, 0, 0, 5"/>
+            <PasswordBox x:Name="UserPasswordBox" Height="40" Background="#1A1A1A" Foreground="White" BorderBrush="#333333" BorderThickness="1" Padding="10,0" VerticalContentAlignment="Center" Margin="0, 0, 0, 10"/>
+
+            <TextBlock Text="PASSWORD CONFIRM*" Foreground="#777777" FontSize="10" FontWeight="SemiBold" Margin="0, 0, 0, 5"/>
+            <PasswordBox x:Name="UserPasswordRepeatBox" Height="40" Background="#1A1A1A" Foreground="White" BorderBrush="#333333" BorderThickness="1" Padding="10,0" VerticalContentAlignment="Center" Margin="0, 0, 0, 10"/>
+
+            <TextBlock Grid.Column="0" Text="Sign In" Foreground="#00A2FF" FontSize="11" HorizontalAlignment="Right" Cursor="Hand" MouseDown="SignIn_MouseDown"/>
+        </StackPanel>
+
+        <Button Grid.Row="2" Click="SignUpButton_Click" Height="50" Background="#A4133C" Margin="5, 0, 5, 0" HorizontalContentAlignment="Center" VerticalAlignment="Top">
+            <Label Content="Sign Up" Foreground="#FFB3BB" FontWeight="Bold" FontSize="14"  VerticalAlignment="Center"/>
+        </Button>
+
+    </Grid>
+</Window>

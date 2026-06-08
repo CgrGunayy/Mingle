@@ -1,0 +1,59 @@
+﻿<Window x:Class="MingleWPF.ProjectSetupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="New Project" Height="400" Width="450"
+        WindowStartupLocation="CenterScreen" 
+        WindowStyle="None" 
+        ResizeMode="NoResize"
+    Background="#121212">
+
+    <Window.InputBindings>
+        <MouseBinding MouseAction="LeftClick" Command="{Binding DragMoveCommand}" />
+    </Window.InputBindings>
+
+    <Grid Margin="20, 15, 20, 15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+
+        <StackPanel Grid.Row="0">
+            <Label Content="MINGLE" Foreground="#A4133C" FontSize="32" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="ExtraBold" />
+            <TextBlock Text="Set up your project to start editing." HorizontalAlignment="Center" Foreground="#777777" FontSize="12"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" VerticalAlignment="Center">
+
+            <TextBlock Text="PROJECT NAME" Foreground="#777777" FontSize="10" FontWeight="SemiBold" Margin="0, 0, 0, 5"/>
+            <TextBox x:Name="ProjectNameTextBox" Height="40" Background="#1A1A1A" Foreground="White" BorderBrush="#333333" BorderThickness="1" Padding="10,0" VerticalContentAlignment="Center" Margin="0, 0, 0, 20"/>
+
+            <TextBlock Text="PROJECT LOCATION" Foreground="#777777" FontSize="10" FontWeight="SemiBold" Margin="0, 0, 0, 5"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="71*"/>
+                    <ColumnDefinition Width="239*"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="ProjectPathTextBox" Grid.Column="0" Height="40" Background="#1A1A1A" Foreground="#AAAAAA" BorderBrush="#333333" BorderThickness="1,1,0,1" Padding="10,0" VerticalContentAlignment="Center" IsReadOnly="True" Grid.ColumnSpan="2"/>
+                <Button x:Name="BrowseButton" Grid.Column="2" Content="Browse" Background="#353535" Foreground="White" BorderThickness="0" Cursor="Hand" Click="BrowseButton_Click"/>
+            </Grid>
+        </StackPanel>
+
+        <Grid Grid.Row="2" Margin="0, 20, 0, 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Click="OpenButton_Click" Grid.Column="0" Content="Open" Height="50" Background="#1A1A1A" Foreground="#FFB3BB" FontWeight="Bold" />
+            <Button Grid.Column="2" Click="CreateButton_Click" Height="50" Background="#A4133C" Margin="5, 0, 5, 0" HorizontalContentAlignment="Center" VerticalAlignment="Top">
+                <Label Content="Create" Foreground="#FFB3BB" FontWeight="Bold" FontSize="14"  VerticalAlignment="Center"/>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

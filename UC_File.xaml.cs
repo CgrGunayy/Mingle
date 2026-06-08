@@ -40,6 +40,8 @@ namespace MingleWPF
             set { SetValue(FileTypeProperty, value); }
         }
 
+        public FileData FileData => fileData;
+
         public static readonly DependencyProperty FileNameProperty =
             DependencyProperty.Register("FileName", typeof(string), typeof(UC_File), new PropertyMetadata("null", OnFileNameChanged));
 
@@ -65,6 +67,15 @@ namespace MingleWPF
             fileData.Path = FilePath;
         }
 
+
+        public UC_File(FileData fileData)
+        {
+            InitializeComponent();
+
+            this.fileData = fileData;
+            FileThumbnail = this.fileData.Thumbnail;
+        }
+
         private void SetFileName(string name)
         {
             fileNameHolder.Content = name;
@@ -85,6 +96,7 @@ namespace MingleWPF
             }
 
             fileImageHolder.Source = thumbnail;
+            fileData.Thumbnail = thumbnail;
             fileData.ThumbnailPath = thumbnail.UriSource.AbsolutePath;
         }
 

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
+using System.Text.Json.Serialization;
 
 namespace MingleWPF
 {
@@ -18,6 +20,7 @@ namespace MingleWPF
     {
         public string Name { get; set; } = string.Empty;
         public string Path { get; set; } = string.Empty;
+        [JsonIgnore] public BitmapImage? Thumbnail { get; set; }
         public string ThumbnailPath { get; set; } = string.Empty;
         public FileType Type { get; set; }
     }

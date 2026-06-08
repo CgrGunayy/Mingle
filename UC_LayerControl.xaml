@@ -8,8 +8,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="50" d:DesignWidth="200">
 
-    <StackPanel>
-        <StackPanel Height="50" Background="#1C1B1B" Orientation="Horizontal">
+    <StackPanel Orientation="Vertical">
+        <StackPanel Height="49" Background="#1C1B1B" Orientation="Horizontal">
             <iconPacks:PackIconBootstrapIcons x:Name="layerIcon" Margin="15, 0, 0, 0" Width="18" Height="18" Kind="CameraVideo" Foreground="#E0BEC1"  VerticalAlignment="Center"/>
             <StackPanel Orientation="Vertical">
                 <Label x:Name="layerTitle" Content="Video Layer" Margin="5, 2, 10, 0" Foreground="#E0BEC1" FontSize="14" FontWeight="Medium"  VerticalAlignment="Center"/>
@@ -19,6 +19,7 @@
                 </StackPanel>
             </StackPanel>
         </StackPanel>
+        <Border Height="1" Background="#222222"/>
     </StackPanel>
    
 </UserControl>

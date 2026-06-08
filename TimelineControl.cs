@@ -15,25 +15,39 @@ namespace MingleWPF
         private readonly SolidColorBrush _backgroundBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0E0E0E"));
         private readonly Pen _tickPen = new Pen(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#70594043")), 1);
         private readonly Pen _playheadPen = new Pen(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFB2BA")), 2);
+        private readonly Pen trackLinePen = new Pen(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#222222")), 1);
         private readonly SolidColorBrush _playheadRectBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFB2BA"));
         private readonly SolidColorBrush _textBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#70E0BEC1"));
 
         SolidColorBrush clipBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A4133C"));
+        SolidColorBrush clipArrowBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFB2BA"));
         Pen clipBorderPen = new Pen(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#35A4133C")), 1);
 
         public double PixelsPerSecond { get; set; } = 100;
         public double ScrollOffset { get; set; } = 0;
         public double PlayheadSeconds { get; set; } = 0;
+        public double LayerHeight { get; set; } = 50;
+        public double TimelineTopHeight { get; set; } = 50;
 
         private bool isDragging;
         private bool isDraggingPlayhead;
+        private bool isDraggingClip;
+
+        private enum ClipDragMode { None, Move, TrimLeft, TrimRight }
+        private ClipDragMode currentClipDragMode = ClipDragMode.None;
+
+        private Point clipDragStartScreenPoint;
+        private TimelineClip? draggingClip;
+
+        private Point dragStartScreenPoint;
+        private bool ignoreNextMouseMove;
+
+        UC_PreviewControl previewPlayer;
+        public void SetPreviewPlayer(UC_PreviewControl preview) { this.previewPlayer = preview; }
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetCursorPos(int x, int y);
-
-        private Point dragStartScreenPoint;
-        private bool ignoreNextMouseMove;
 
         public TimelineControl()
         {
@@ -52,7 +66,7 @@ namespace MingleWPF
 
             double minPixelGap = 60;
             int stepSeconds = CalculateStepSeconds(PixelsPerSecond, minPixelGap);
-  
+
             int startSec = (int)(ScrollOffset / PixelsPerSecond);
             int endSec = startSec + (int)(ActualWidth / PixelsPerSecond) + 2;
 
@@ -75,32 +89,91 @@ namespace MingleWPF
                 dc.DrawText(text, new Point(xPos + 4, 15));
             }
 
-            foreach (var clip in TimelineData.Clips)
+
+            int visibleTracks = (int)((ActualHeight - TimelineTopHeight) / LayerHeight) + 1;
+
+            for (int i = 0; i < visibleTracks; i++)
             {
-                double startX = (clip.ClipStartSecond * PixelsPerSecond) - ScrollOffset;
-                double width = clip.ClipDuration * PixelsPerSecond;
+                double y = TimelineTopHeight + i * LayerHeight;
+                dc.DrawLine(trackLinePen, new Point(0, y), new Point(ActualWidth, y));
+            }
 
-                Rect clipRect = new Rect(startX, 30, width, 40);
+            var layerControls = MainWindow.LayersPanel.Children;
 
-                if (clipRect.Right > 0 && clipRect.Left < ActualWidth)
+            int layerIndex = 0;
+            foreach (UC_LayerControl layerControl in layerControls)
+            {
+                if (!TimelineData.Layers.Keys.Contains(layerControl.LayerID))
+                    continue;
+
+                TimelineLayer layer = TimelineData.Layers[layerControl.LayerID];
+
+                foreach (var clip in layer.Clips)
                 {
-                    dc.DrawRectangle(clipBrush, clipBorderPen, clipRect);
+                    double startX = (clip.StartSecondsOnTimeline * PixelsPerSecond) - ScrollOffset;
+                    double width = (clip.EndSecondsOnTimeline - clip.StartSecondsOnTimeline) * PixelsPerSecond;
 
-                    FormattedText clipText = new FormattedText(
-                        clip.ClipTitle,
-                        System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
-                        new Typeface("Consolas"), 10, Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                    double startY = TimelineTopHeight + (layerIndex * LayerHeight) + 5;
+                    double clipHeight = LayerHeight - 10;
 
-                    double safeTextWidth = width - 10;
+                    Rect clipRect = new Rect(startX, startY, width, clipHeight);
 
-                    if (safeTextWidth > 0)
+                    if (clipRect.Right > 0 && clipRect.Left < ActualWidth)
                     {
-                        clipText.MaxTextWidth = safeTextWidth;
-                        clipText.MaxLineCount = 1;
-                        clipText.Trimming = TextTrimming.CharacterEllipsis;
-                        dc.DrawText(clipText, new Point(startX + 5, 42));
+                        dc.DrawRectangle(clipBrush, clipBorderPen, clipRect);
+
+                        if (clip.FileData?.Thumbnail != null)
+                        {
+                            dc.PushClip(new RectangleGeometry(clipRect));
+
+                            double aspectRatio = clip.FileData.Thumbnail.Width / clip.FileData.Thumbnail.Height;
+                            double thumbnailWidth = clipHeight * aspectRatio;
+
+                            ImageBrush tileBrush = new ImageBrush(clip.FileData.Thumbnail)
+                            {
+                                TileMode = TileMode.Tile,
+                                Stretch = Stretch.UniformToFill,
+                                ViewportUnits = BrushMappingMode.Absolute,
+
+                                Viewport = new Rect(-ScrollOffset, startY, thumbnailWidth, clipHeight)
+                            };
+
+                            dc.DrawRectangle(tileBrush, null, clipRect);
+
+                            dc.Pop();
+                        }
+
+                        Point mousePosition = Mouse.GetPosition(this);
+                        if (clipRect.Contains(mousePosition))
+                        {
+                            Rect leftArrowRect = new Rect(clipRect.X, clipRect.Y, 10, clipRect.Height);
+                            Rect rightArrowRect = new Rect(clipRect.X + clipRect.Width - 10, clipRect.Y, 10, clipRect.Height);
+                            dc.DrawRectangle(clipArrowBrush, clipBorderPen, leftArrowRect);
+                            dc.DrawRectangle(clipArrowBrush, clipBorderPen, rightArrowRect);
+                        }
+
+                        double safeTextWidth = width - 10;
+
+                        if (safeTextWidth > 0)
+                        {
+                            FormattedText clipText = new FormattedText(
+                            clip.ClipTitle,
+                            System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
+                            new Typeface("Consolas"), 10, Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+
+                            clipText.MaxTextWidth = safeTextWidth;
+                            clipText.MaxLineCount = 1;
+                            clipText.Trimming = TextTrimming.CharacterEllipsis;
+
+                            Rect textBgRect = new Rect(startX, startY, width, 16);
+                            dc.DrawRectangle(new SolidColorBrush(Color.FromArgb(150, 0, 0, 0)), null, textBgRect);
+
+                            dc.DrawText(clipText, new Point(startX + 5, startY + 2));
+                        }
                     }
                 }
+
+                layerIndex++;
             }
 
             double playheadX = (PlayheadSeconds * PixelsPerSecond) - ScrollOffset;
@@ -143,27 +216,52 @@ namespace MingleWPF
                 Point dropPoint = e.GetPosition(this);
                 double dropSecond = (dropPoint.X + ScrollOffset) / PixelsPerSecond;
 
+                int droppedLayer = (int)((dropPoint.Y - TimelineTopHeight) / LayerHeight);
+                if (droppedLayer < 0) droppedLayer = 0;
+
+                if (droppedLayer >= TimelineData.Layers.Count)
+                    return;
+
+                UC_LayerControl layerControl = (UC_LayerControl)(MainWindow.LayersPanel.Children[droppedLayer]);
+
+                TimelineLayer layer = TimelineData.Layers[layerControl.LayerID];
+                switch (layer.LayerType)
+                {
+                    case LayerType.Video:
+                        if (file.Type == FileType.Audio)
+                            return;
+                        break;
+                    case LayerType.Audio:
+                        if (file.Type == FileType.Image || file.Type == FileType.Video || file.Type == FileType.Effect)
+                            return;
+                        break;
+                }
+
                 try
                 {
                     TimelineClip clip = new TimelineClip();
                     clip.ClipTitle = file.Name;
-                    clip.ClipStartSecond = dropSecond;
+                    clip.StartSecondsOnTimeline = dropSecond;
                     clip.FileData = file;
 
                     switch (file.Type)
                     {
                         case FileType.Video:
                             IMediaAnalysis videoInfo = await FFProbe.AnalyseAsync(file.Path);
-                            clip.ClipEndSecond = clip.ClipStartSecond + videoInfo.Duration.TotalSeconds;
+                            clip.EndSecondsOnTimeline = clip.StartSecondsOnTimeline + videoInfo.Duration.TotalSeconds;
+                            clip.VideoDuration = videoInfo.Duration.TotalSeconds;
                             break;
                         case FileType.Image:
-                            clip.ClipEndSecond = clip.ClipStartSecond + 5.0;
+                            clip.EndSecondsOnTimeline = clip.StartSecondsOnTimeline + 5.0;
+                            break;
+                        case FileType.Audio:
+                            clip.EndSecondsOnTimeline = clip.StartSecondsOnTimeline + 5.0;
                             break;
                     }
 
-                    clip.ClipDuration = clip.ClipEndSecond - clip.ClipStartSecond;
+                    clip.ClipDuration = clip.EndSecondsOnTimeline - clip.StartSecondsOnTimeline;
 
-                    TimelineData.AddClip(clip);
+                    TimelineData.AddClip(clip, layer);
 
                     InvalidateVisual();
                 }
@@ -181,11 +279,50 @@ namespace MingleWPF
                 double playheadX = (PlayheadSeconds * PixelsPerSecond) - ScrollOffset;
                 Rect playheadRect = new Rect(playheadX - 5, 0, 10, 10);
 
+                Point mousePoint = e.GetPosition(this);
+                double mousePointSeconds = (mousePoint.X + ScrollOffset) / PixelsPerSecond;
+
                 isDragging = true;
-                if (playheadRect.Contains(e.GetPosition(this)))
+                if (playheadRect.Contains(mousePoint))
                     isDraggingPlayhead = true;
 
-                dragStartScreenPoint = this.PointToScreen(e.GetPosition(this));
+                if (mousePoint.Y > TimelineTopHeight)
+                {
+                    int droppedLayer = (int)((mousePoint.Y - TimelineTopHeight) / LayerHeight);
+
+                    if (droppedLayer < MainWindow.LayersPanel.Children.Count)
+                    {
+                        UC_LayerControl layerControl = (UC_LayerControl)(MainWindow.LayersPanel.Children[droppedLayer]);
+                        TimelineLayer layer = TimelineData.Layers[layerControl.LayerID];
+
+                        if (TimelineData.TryToGetClipAtSeconds(mousePointSeconds, out TimelineClip? clip, layer.LayerID))
+                        {
+                            isDraggingClip = true;
+                            draggingClip = clip;
+
+                            double hitTolerance = 10 / PixelsPerSecond;
+
+                            if (Math.Abs(mousePointSeconds - draggingClip.StartSecondsOnTimeline) <= hitTolerance)
+                            {
+                                currentClipDragMode = ClipDragMode.TrimLeft;
+                            }
+                            else if (Math.Abs(mousePointSeconds - draggingClip.EndSecondsOnTimeline) <= hitTolerance)
+                            {
+                                currentClipDragMode = ClipDragMode.TrimRight;
+                            }
+                            else
+                            {
+                                currentClipDragMode = ClipDragMode.Move;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    PlayheadSeconds = mousePointSeconds;
+                }
+
+                dragStartScreenPoint = this.PointToScreen(mousePoint);
 
                 this.CaptureMouse();
                 this.Cursor = Cursors.None;
@@ -194,6 +331,9 @@ namespace MingleWPF
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
+            if (this.IsMouseOver)
+                InvalidateVisual();
+
             if (isDraggingPlayhead)
             {
                 if (ignoreNextMouseMove)
@@ -225,6 +365,77 @@ namespace MingleWPF
                     InvalidateVisual();
                 }
             }
+            else if (isDraggingClip && draggingClip != null)
+            {
+                if (ignoreNextMouseMove)
+                {
+                    ignoreNextMouseMove = false;
+                    return;
+                }
+
+                Point currentScreenPos = this.PointToScreen(e.GetPosition(this));
+                double deltaX = currentScreenPos.X - dragStartScreenPoint.X;
+
+                if (Math.Abs(deltaX) > 0)
+                {
+                    double deltaSeconds = deltaX / PixelsPerSecond;
+                    double minDurationSeconds = 1;
+
+                    if (currentClipDragMode == ClipDragMode.TrimLeft)
+                    {
+                        double newStart = draggingClip.StartSecondsOnTimeline + deltaSeconds;
+
+                        if (newStart < 0) newStart = 0;
+
+                        if (newStart > draggingClip.EndSecondsOnTimeline - minDurationSeconds)
+                            newStart = draggingClip.EndSecondsOnTimeline - minDurationSeconds;
+
+                        if (draggingClip.FileData?.Type == FileType.Video)
+                        {
+                            draggingClip.VideoStartSecond += newStart - draggingClip.StartSecondsOnTimeline;
+                            if (draggingClip.VideoStartSecond < 0)
+                            {
+                                double amount = -draggingClip.VideoStartSecond;
+                                newStart += amount;
+                                draggingClip.VideoStartSecond = 0;
+                            }
+                        }
+
+                        draggingClip.StartSecondsOnTimeline = newStart;
+                        draggingClip.ClipDuration = draggingClip.EndSecondsOnTimeline - draggingClip.StartSecondsOnTimeline;
+                    }
+                    else if (currentClipDragMode == ClipDragMode.TrimRight)
+                    {
+                        double newEnd = draggingClip.EndSecondsOnTimeline + deltaSeconds;
+
+                        if (newEnd < draggingClip.StartSecondsOnTimeline + minDurationSeconds)
+                            newEnd = draggingClip.StartSecondsOnTimeline + minDurationSeconds;
+
+                        if (draggingClip.FileData?.Type == FileType.Video)
+                        {
+                            if (newEnd > draggingClip.StartSecondsOnTimeline + draggingClip.VideoDuration)
+                                newEnd = draggingClip.StartSecondsOnTimeline + draggingClip.VideoDuration;
+                        }
+
+
+                        draggingClip.EndSecondsOnTimeline = newEnd;
+                        draggingClip.ClipDuration = draggingClip.EndSecondsOnTimeline - draggingClip.StartSecondsOnTimeline;
+                    }
+                    else if (currentClipDragMode == ClipDragMode.Move)
+                    {
+                        double newStart = draggingClip.StartSecondsOnTimeline + deltaSeconds;
+
+                        if (newStart < 0) newStart = 0;
+
+                        draggingClip.StartSecondsOnTimeline = newStart;
+                        draggingClip.EndSecondsOnTimeline = newStart + draggingClip.ClipDuration;
+                    }
+
+                    ignoreNextMouseMove = true;
+                    SetCursorPos((int)dragStartScreenPoint.X, (int)dragStartScreenPoint.Y);
+                    InvalidateVisual();
+                }
+            }
             else if (isDragging)
             {
                 if (ignoreNextMouseMove)
@@ -248,12 +459,16 @@ namespace MingleWPF
                     InvalidateVisual();
                 }
             }
+
+            previewPlayer.UpdatePreview(TimelineData, PlayheadSeconds);
         }
 
         protected override void OnMouseUp(MouseButtonEventArgs e)
         {
             isDragging = false;
             isDraggingPlayhead = false;
+            isDraggingClip = false;
+            draggingClip = null;
             this.ReleaseMouseCapture();
             this.Cursor = Cursors.Arrow;
         }

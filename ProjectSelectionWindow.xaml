@@ -1,0 +1,68 @@
+﻿<Window x:Class="MingleWPF.ProjectSelectionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Open Project" Height="450" Width="400"
+        WindowStartupLocation="CenterScreen" 
+        WindowStyle="None" 
+        ResizeMode="NoResize"
+        Background="#121212">
+
+    <Window.InputBindings>
+        <MouseBinding MouseAction="LeftClick" Command="{Binding DragMoveCommand}" />
+    </Window.InputBindings>
+
+    <Grid Margin="20, 15, 20, 15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <Label Content="MINGLE" Foreground="#A4133C" FontSize="32" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontWeight="ExtraBold" />
+        </StackPanel>
+
+        <ListBox x:Name="ProjectsListBox" Grid.Row="1" Background="#1A1A1A" BorderBrush="#333333" BorderThickness="1" 
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 MouseDoubleClick="ProjectsListBox_MouseDoubleClick">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="10, 10, 10, 10">
+                        <TextBlock Text="{Binding ProjectName}" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding RootPath}" Foreground="#777777" FontSize="11" Margin="0, 2, 0, 0" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="0"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    <Setter Property="BorderBrush" Value="#222222"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#FFB3BB"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#222222"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+
+        <Grid Grid.Row="2" Margin="0, 20, 0, 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Click="BackButton_Click" Grid.Column="0" Content="Back" Height="50" Background="#1A1A1A" Foreground="#FFB3BB" FontWeight="Bold" />
+            <Button Grid.Column="2" Click="OpenProjectButton_Click" Height="50" Background="#A4133C" Margin="5, 0, 5, 0" HorizontalContentAlignment="Center" VerticalAlignment="Top">
+                <Label Content="Open" Foreground="#FFB3BB" FontWeight="Bold" FontSize="14"  VerticalAlignment="Center"/>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

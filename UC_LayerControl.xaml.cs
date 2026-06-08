@@ -19,45 +19,48 @@ namespace MingleWPF
     public partial class UC_LayerControl : UserControl
     {
 
+        public uint LayerID { get; private set; }
+
         public string LayerName
         {
             get { return (string)GetValue(LayerNameProperty); }
             set { SetValue(LayerNameProperty, value); }
         }
 
-        public string LayerType
+        public LayerType LayerType
         {
-            get { return (string)GetValue(LayerTypeProperty); }
+            get { return (LayerType)GetValue(LayerTypeProperty); }
             set { SetValue(LayerTypeProperty, value); }
         }
 
         public static readonly DependencyProperty LayerTypeProperty =
-            DependencyProperty.Register("LayerType", typeof(string), typeof(UC_LayerControl), new PropertyMetadata("Video", OnLayerTypeChanged));
+            DependencyProperty.Register("LayerType", typeof(LayerType), typeof(UC_LayerControl), new PropertyMetadata(LayerType.Video, OnLayerTypeChanged));
 
 
         public static readonly DependencyProperty LayerNameProperty =
             DependencyProperty.Register("LayerName", typeof(string), typeof(UC_LayerControl), new PropertyMetadata("Layer Name", OnLayerNameChanged));
 
 
-        public UC_LayerControl()
+        public UC_LayerControl(uint LayerID)
         {
             InitializeComponent();
 
+            this.LayerID = LayerID;
             UpdateLayerVisuals(this.LayerType);
             UpdateLayerTitle(this.LayerName);
         }
 
-        private void UpdateLayerVisuals(string type)
+        private void UpdateLayerVisuals(LayerType type)
         {
             switch (type)
             {
-                case "Video":
+                case LayerType.Video:
                     layerIcon.Kind = PackIconBootstrapIconsKind.CameraVideo;
                     layerButton01.Kind = PackIconBootstrapIconsKind.Eye;
                     layerButton02.Kind = PackIconBootstrapIconsKind.UnlockFill;
                     break;
 
-                case "Audio":
+                case LayerType.Audio:
                     layerIcon.Kind = PackIconBootstrapIconsKind.Speaker;
                     layerButton01.Kind = PackIconBootstrapIconsKind.Soundwave;
                     layerButton02.Kind = PackIconBootstrapIconsKind.MicFill;
@@ -74,7 +77,7 @@ namespace MingleWPF
         {
             if (d is UC_LayerControl control)
             {
-                string newValue = (string)e.NewValue;
+                LayerType newValue = (LayerType)e.NewValue;
                 control.UpdateLayerVisuals(newValue);
             }
         }

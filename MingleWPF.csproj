@@ -16,11 +16,25 @@
   <ItemGroup>
     <PackageReference Include="FFMpegCore" Version="5.4.0" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="6.2.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Fonts\BebasNeue-Regular.ttf" />
     <Resource Include="Fonts\Manrope-VariableFont_wght.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="LayerAddDialogWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="ForgotPasswordWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="SignUpWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
 </Project>
